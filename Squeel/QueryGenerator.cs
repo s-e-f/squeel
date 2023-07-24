@@ -1,5 +1,4 @@
 ﻿using System.Data;
-using System.Reflection;
 
 using Microsoft.CodeAnalysis;
 
@@ -10,17 +9,6 @@ namespace Squeel;
 [Generator(LanguageNames.CSharp)]
 public sealed class QueryGenerator : IIncrementalGenerator
 {
-    public QueryGenerator()
-    {
-        AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
-        {
-            var assemblyName = new AssemblyName(args.Name);
-            var assemblyPath = Path.Combine(@"C:\dev\s-e-f\Tome\Tome.Server\bin\Debug\net8.0", assemblyName.Name + ".dll");
-
-            return Assembly.LoadFrom(assemblyPath);
-        };
-    }
-
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterSourceOutput(context.AnalyzerConfigOptionsProvider, (context, config) =>
