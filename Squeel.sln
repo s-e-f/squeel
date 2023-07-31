@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Squeel", "Squeel\Squeel.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Squeel.UnitTests", "Squeel.UnitTests\Squeel.UnitTests.csproj", "{0C2AA86E-7834-47C4-99EB-A1AD20145F81}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Squeel.GeneratorTests", "Squeel.GeneratorTests\Squeel.GeneratorTests.csproj", "{ECACA978-17EE-403F-8BA8-02AF7F33168E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Squeel.GeneratorTests", "Squeel.GeneratorTests\Squeel.GeneratorTests.csproj", "{ECACA978-17EE-403F-8BA8-02AF7F33168E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Squeel.TestContainer", "Squeel.TestContainer\Squeel.TestContainer.csproj", "{A8BF8C78-173B-47CF-AF10-A06461098892}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Squeel.TestContainer", "Squeel.TestContainer\Squeel.TestContainer.csproj", "{A8BF8C78-173B-47CF-AF10-A06461098892}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
