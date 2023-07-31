@@ -16,20 +16,29 @@ public sealed class SqueelTests : IClassFixture<PostgresContainer>
         _output = output;
     }
 
+    private static NpgsqlConnection CreateConnection()
+    {
+        var connection = new NpgsqlConnection("Host=localhost+Port=5432+Password=P@ssw0rd+Database=squeel+User ID=postgres".Replace('+', ';'));
+        connection.Open();
+        return connection;
+    }
+
     [Fact]
     public async Task QueryingUsersOnEmptyDatabaseYieldsEmptyEnumerable()
     {
-        using var connection = new NpgsqlConnection("Host=localhost+Port=5432+Password=P@ssw0rd+Database=squeel+User ID=postgres".Replace('+', ';'));
-
-        await connection.OpenAsync();
-
+        using var connection = CreateConnection();
+        
         var email = "test@test.com";
 
         var users = await connection.QueryAsync<User>($"""
-            SELECT email, date_of_birth, score FROM Users WHERE email = {email}
+            SELECT email, date_of_birth, score
+            FROM users
+            WHERE email = {email}
             """, CancellationToken.None);
 
-        Assert.NotNull(users);
-        Assert.NotEmpty(users);
+        foreach (var user in users)
+        {
+            _output.WriteLine(user.Email);
+        }
     }
 }

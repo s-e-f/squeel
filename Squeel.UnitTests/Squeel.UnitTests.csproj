@@ -8,6 +8,7 @@
 		<IsTestProject>true</IsTestProject>
 		<SqueelConnectionString>Host=localhost+Port=5432+Password=P@ssw0rd+Database=squeel+User ID=postgres</SqueelConnectionString>
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<NoWarn>$(NoWarn);MSB3243</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
