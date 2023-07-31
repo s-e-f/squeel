@@ -1,49 +1,35 @@
-using Microsoft.CodeAnalysis.CSharp;
-using Testcontainers.PostgreSql;
+﻿using Npgsql;
+using Xunit.Abstractions;
+using Squeel;
+using Squeel.TestContainers;
 
-namespace Squeel.UnitTests;
-
-public sealed class PostgresContainer : IAsyncLifetime
-{
-    private readonly PostgreSqlContainer _container;
-
-    public string ConnectionString => _container.GetConnectionString();
-
-    public PostgresContainer()
-    {
-        _container = new PostgreSqlBuilder().Build();
-    }
-
-    public async Task InitializeAsync()
-    {
-        await _container.StartAsync();
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _container.StopAsync();
-    }
-}
+namespace Squeel.GeneratorTests;
 
 public sealed class SqueelTests : IClassFixture<PostgresContainer>
 {
-    private readonly PostgresContainer _postgres;
+    private readonly PostgresContainer _container;
+    private readonly ITestOutputHelper _output;
 
-    public SqueelTests(PostgresContainer postgres)
+    public SqueelTests(PostgresContainer container, ITestOutputHelper output)
     {
-        _postgres = postgres;
+        _container = container;
+        _output = output;
     }
 
     [Fact]
-    public void Test1()
+    public async Task QueryingUsersOnEmptyDatabaseYieldsEmptyEnumerable()
     {
-        var result = SqueelTestContext<QueryGenerator>.Run(_postgres.ConnectionString, CSharpSyntaxTree.ParseText("""
-            
-            Console.WriteLine("Hello World");
-            
-            """, path: "test-path/for-debugging/input.cs"));
+        using var connection = new NpgsqlConnection("Host=localhost+Port=5432+Password=P@ssw0rd+Database=squeel+User ID=postgres".Replace('+', ';'));
 
-        Assert.Empty(result.Errors);
-        Assert.Empty(result.GeneratorDiagnostics);
+        await connection.OpenAsync();
+
+        var email = "test@test.com";
+
+        var users = await connection.QueryAsync<User>($"""
+            SELECT email, date_of_birth, score FROM Users WHERE email = {email}
+            """, CancellationToken.None);
+
+        Assert.NotNull(users);
+        Assert.NotEmpty(users);
     }
 }

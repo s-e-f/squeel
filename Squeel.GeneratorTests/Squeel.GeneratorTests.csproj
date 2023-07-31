@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
@@ -6,14 +6,13 @@
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
-		<SqueelConnectionString>Host=localhost+Port=5432+Password=P@ssw0rd+Database=squeel+User ID=postgres</SqueelConnectionString>
-		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<PreserveCompilationContext>true</PreserveCompilationContext>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyModel" Version="7.0.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
-		<PackageReference Include="Testcontainers.PostgreSql" Version="3.3.0" />
 		<PackageReference Include="xunit" Version="2.4.2" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -27,9 +26,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Squeel.TestContainer\Squeel.TestContainer.csproj" />
-		<ProjectReference Include="..\Squeel\Squeel.csproj" OutputItemType="Analyzer" PrivateAssets="all"/>
+		<ProjectReference Include="..\Squeel\Squeel.csproj" />
 	</ItemGroup>
-
-	<Import Project="../Squeel/Squeel.props" />
 
 </Project>
