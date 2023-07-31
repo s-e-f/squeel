@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 jobs:
-  dotsef-hosts:
+  push:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -22,7 +22,7 @@ jobs:
         with:
           global-json-file: global.json
       - run: dotnet pack -c Release
-      - run: dotnet nuget push **/*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
+      - run: dotnet nuget push Squeel/**/*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }}
       - run: nbgv tag
       - run: git push origin v$(nbgv get-version -v NugetPackageVersion)
         shell: bash
