@@ -1,6 +1,5 @@
 ﻿using Npgsql;
 using Xunit.Abstractions;
-using Squeel;
 
 namespace Squeel.GeneratorTests;
 
@@ -28,10 +27,10 @@ public sealed class SqueelTests
         var email = "test@test.com";
 
         var users = await connection.QueryAsync<User>($"""
-            SELECT *
+            SELECT email
             FROM users
             WHERE email = {email}
-            """, CancellationToken.None);
+            """);
 
         foreach (var user in users)
         {

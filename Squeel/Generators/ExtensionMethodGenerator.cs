@@ -23,7 +23,7 @@ public sealed class ExtensionMethodGenerator : IIncrementalGenerator
                     public static partial global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<T>> {{GeneratedFileOptions.MethodName}}<T>(
                         this global::Npgsql.NpgsqlConnection connection,
                         ref global::{{GeneratedFileOptions.Namespace}}.SqueelInterpolatedStringHandler query,
-                        global::System.Threading.CancellationToken ct);
+                        global::System.Threading.CancellationToken ct = default);
                 }
                 """, Encoding.UTF8));
         });

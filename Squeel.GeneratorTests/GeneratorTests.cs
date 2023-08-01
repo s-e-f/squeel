@@ -38,7 +38,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
             using var connection = new NpgsqlConnection("{{_postgres.ConnectionString}}");
 
             var email = "test@test.com";
-            var users = connection.QueryAsync<User>($"SELECT email, date_of_birth FROM Users WHERE email = {email}", CancellationToken.None);
+            var users = connection.QueryAsync<User>($"SELECT email, date_of_birth FROM Users WHERE email = {email}");
 
             """, path: "test-path/for-debugging/input.cs"));
 
@@ -61,7 +61,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
 
                 SELECT email, date_of_birth FROM Users WHERE email = {email}
                 
-                """, CancellationToken.None);
+                """);
 
             """", path: "test-path/for-debugging/input.cs"));
 
@@ -83,7 +83,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
                 
                 SELECT non_existent_column FROM non_existent_table
 
-                """, CancellationToken.None);
+                """);
 
             """"));
 
