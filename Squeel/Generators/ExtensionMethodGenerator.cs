@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.Text;
 using System.Text;
 
-namespace Squeel;
+namespace Squeel.Generators;
 
 [Generator(LanguageNames.CSharp)]
 public sealed class ExtensionMethodGenerator : IIncrementalGenerator

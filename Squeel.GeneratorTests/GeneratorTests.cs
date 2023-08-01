@@ -1,8 +1,7 @@
 using Microsoft.CodeAnalysis.CSharp;
-using Squeel.TestContainers;
 using Xunit.Abstractions;
 
-namespace Squeel.UnitTests;
+namespace Squeel.GeneratorTests;
 
 public sealed class GeneratorTests : IClassFixture<PostgresContainer>
 {
@@ -72,31 +71,24 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
     }
 
     [Fact]
-    public void Test()
+    public void FaultySqlShouldRaiseASingleGeneratorDiagnostic()
     {
         var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, CSharpSyntaxTree.ParseText($$""""
             using Npgsql;
             using Squeel;
 
-            await SqueelTests.QueryingUsersOnEmptyDatabaseYieldsEmptyEnumerable();
+            using var connection = new NpgsqlConnection("{{_postgres.ConnectionString}}");
 
-            static class SqueelTests
-            {
-                public static async Task QueryingUsersOnEmptyDatabaseYieldsEmptyEnumerable()
-                {
-                    using var connection = new NpgsqlConnection("{{_postgres.ConnectionString}}");
+            var _ = await connection.QueryAsync<Faulty>($"""
+                
+                SELECT non_existent_column FROM non_existent_table
 
-                    await connection.OpenAsync();
+                """, CancellationToken.None);
 
-                    var users = await connection.QueryAsync<User>($"""
-                        SELECT email, date_of_birth FROM Users
-                        """, CancellationToken.None);
-                }
-            }
             """"));
 
         Assert.Multiple(
-            () => Assert.Empty(result.GeneratorDiagnostics),
-            () => Assert.Empty(result.Errors));
+            () => Assert.Empty(result.Errors),
+            () => Assert.Single(result.GeneratorDiagnostics));
     }
 }

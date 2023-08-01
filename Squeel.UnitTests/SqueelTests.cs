@@ -1,18 +1,15 @@
 ﻿using Npgsql;
 using Xunit.Abstractions;
 using Squeel;
-using Squeel.TestContainers;
 
 namespace Squeel.GeneratorTests;
 
-public sealed class SqueelTests : IClassFixture<PostgresContainer>
+public sealed class SqueelTests
 {
-    private readonly PostgresContainer _container;
     private readonly ITestOutputHelper _output;
 
-    public SqueelTests(PostgresContainer container, ITestOutputHelper output)
+    public SqueelTests(ITestOutputHelper output)
     {
-        _container = container;
         _output = output;
     }
 
@@ -31,7 +28,7 @@ public sealed class SqueelTests : IClassFixture<PostgresContainer>
         var email = "test@test.com";
 
         var users = await connection.QueryAsync<User>($"""
-            SELECT email, date_of_birth, score
+            SELECT *
             FROM users
             WHERE email = {email}
             """, CancellationToken.None);

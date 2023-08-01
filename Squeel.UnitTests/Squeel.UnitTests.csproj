@@ -27,7 +27,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Squeel.TestContainer\Squeel.TestContainer.csproj" />
 		<ProjectReference Include="..\Squeel\Squeel.csproj" OutputItemType="Analyzer" PrivateAssets="all"/>
 	</ItemGroup>
 

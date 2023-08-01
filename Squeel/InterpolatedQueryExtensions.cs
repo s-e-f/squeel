@@ -26,28 +26,28 @@ public static class InterpolatedQueryExtensions
         return sql.ToString();
     }
 
-    public static object ToRandomizedValue(this TypeInfo typeInfo)
+    public static object ToExampleValue(this TypeInfo typeInfo)
     {
         return typeInfo.Type?.Name switch
         {
-            "Int32" => new Random().Next(),
-            "String" => Guid.NewGuid().ToString(),
-            "Boolean" => new Random().Next() % 2 == 0,
-            "DateTime" => DateTime.UtcNow,
-            "Decimal" => new Random().Next(),
-            "Double" => new Random().Next(),
-            "Single" => new Random().Next(),
-            "Int16" => new Random().Next(),
-            "Int64" => new Random().Next(),
-            "Byte" => new Random().Next(),
-            "SByte" => new Random().Next(),
-            "UInt16" => new Random().Next(),
-            "UInt32" => new Random().Next(),
-            "UInt64" => new Random().Next(),
-            "Char" => Guid.NewGuid().ToString()[0],
+            "Int32" => -32,
+            "String" => "Hello World",
+            "Boolean" => true,
+            "DateTime" => new DateTime(2000, 1, 1),
+            "Decimal" => 6.4m,
+            "Double" => 3.2d,
+            "Single" => 3.2f,
+            "Int16" => -16,
+            "Int64" => -64,
+            "Byte" => -8,
+            "SByte" => 8,
+            "UInt16" => 16,
+            "UInt32" => 32,
+            "UInt64" => 64,
+            "Char" => 'a',
             "Guid" => Guid.NewGuid(),
-            "TimeSpan" => TimeSpan.FromTicks(new Random().Next()),
-            "DateTimeOffset" => DateTimeOffset.UtcNow,
+            "TimeSpan" => TimeSpan.FromTicks(100),
+            "DateTimeOffset" => new DateTimeOffset(new DateTime(2000, 1, 1)),
             //"Nullable`1" => ToRandomizedValue(),
             _ => throw new NotSupportedException($"Type {typeInfo.Type?.Name} is not supported"),
         };

@@ -4,9 +4,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Npgsql;
 using Squeel.Analyzers;
+using Squeel.Generators;
 using Xunit.Abstractions;
 
-namespace Squeel.UnitTests;
+namespace Squeel.GeneratorTests;
 
 public static class SqueelTestContext
 {
@@ -43,24 +44,32 @@ public static class SqueelTestContext
             AnalyzerDiagnostics = analysisResults,
         };
 
-
         if (result.GeneratorDiagnostics.Any())
+        {
             output.WriteLine($"# Diagnostics");
-        foreach (var diag in result.GeneratorDiagnostics)
-            output.WriteLine($"{diag.Location.GetLineSpan()} {diag.GetMessage()}");
+            output.WriteLine("");
+            foreach (var diag in result.GeneratorDiagnostics)
+                output.WriteLine($"{diag.Location.SourceTree?.FilePath}:{diag.Location.GetLineSpan().StartLinePosition.Line} {diag.GetMessage()}");
+            output.WriteLine("");
+        }
 
         if (result.Errors.Any())
+        {
             output.WriteLine($"# Errors");
-        foreach (var error in result.Errors)
-            output.WriteLine($"{error.Location.GetLineSpan()} {error.GetMessage()}");
+            output.WriteLine("");
+            foreach (var error in result.Errors)
+                output.WriteLine($"{error.Location.GetLineSpan()} {error.GetMessage()}");
+            output.WriteLine("");
+        }
 
         foreach (var file in result.GeneratedFiles.Where(f => f.FilePath.StartsWith("Squeel\\Squeel.EntityGenerator") || f.FilePath.StartsWith("Squeel\\Squeel.QueryGenerator")))
         {
             output.WriteLine($"""
-                # Generated file {file.FilePath}
+                # {file.FilePath}
 
+                ```csharp
                 """);
-            var text = file.GetText();
+            var text = file.GetText(ct);
             var lineCount = text.Lines.Count;
             var gutterSize = lineCount.ToString().Length;
             foreach (var line in text.Lines)
@@ -70,8 +79,9 @@ public static class SqueelTestContext
             }
 
             output.WriteLine("""
+                ```
 
-                ###
+                ---
 
                 """);
         }

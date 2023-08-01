@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.DependencyModel;
 
-namespace Squeel.UnitTests;
+namespace Squeel.GeneratorTests;
 
 public static class NetCoreCompilation
 {

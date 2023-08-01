@@ -9,8 +9,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Squeel.UnitTests", "Squeel.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Squeel.GeneratorTests", "Squeel.GeneratorTests\Squeel.GeneratorTests.csproj", "{ECACA978-17EE-403F-8BA8-02AF7F33168E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Squeel.TestContainer", "Squeel.TestContainer\Squeel.TestContainer.csproj", "{A8BF8C78-173B-47CF-AF10-A06461098892}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{ECACA978-17EE-403F-8BA8-02AF7F33168E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECACA978-17EE-403F-8BA8-02AF7F33168E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ECACA978-17EE-403F-8BA8-02AF7F33168E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A8BF8C78-173B-47CF-AF10-A06461098892}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A8BF8C78-173B-47CF-AF10-A06461098892}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A8BF8C78-173B-47CF-AF10-A06461098892}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A8BF8C78-173B-47CF-AF10-A06461098892}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

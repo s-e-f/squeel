@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Squeel;
+namespace Squeel.Generators;
 
 [Generator(LanguageNames.CSharp)]
 public sealed class QueryGenerator : IIncrementalGenerator

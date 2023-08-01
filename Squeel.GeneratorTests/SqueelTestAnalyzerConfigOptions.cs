@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Squeel.UnitTests;
+namespace Squeel.GeneratorTests;
 
 internal sealed class SqueelTestAnalyzerConfigOptions : AnalyzerConfigOptions
 {

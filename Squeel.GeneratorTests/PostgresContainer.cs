@@ -1,8 +1,7 @@
 ﻿using Npgsql;
 using Testcontainers.PostgreSql;
-using Xunit;
 
-namespace Squeel.TestContainers;
+namespace Squeel.GeneratorTests;
 
 public sealed class PostgresContainer : IAsyncLifetime
 {

@@ -6,3 +6,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 SQUEEL001 | Squeel | Error | SqueelConnectionStringAnalyzer
+SQUEEL002 | Squeel | Error | EntityGenerator
