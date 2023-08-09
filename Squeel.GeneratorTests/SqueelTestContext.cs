@@ -11,12 +11,12 @@ namespace Squeel.GeneratorTests;
 
 public static class SqueelTestContext
 {
-    public static SqueelTestResult Run(string connectionString, ITestOutputHelper output, SyntaxTree code, IEnumerable<MetadataReference>? additionalReferences = null, CancellationToken ct = default)
+    public static SqueelTestResult Run(string connectionString, ITestOutputHelper output, string code, IEnumerable<MetadataReference>? additionalReferences = null, CancellationToken ct = default)
     {
         var squeelConnectionStringProvider = new SqueelTestAnalyzerConfigOptionsProvider(connectionString);
 
         var compilation = NetCoreCompilation.Create(
-            ImmutableArray.Create(code),
+            ImmutableArray.Create(CSharpSyntaxTree.ParseText(code, NetCoreCompilation.DefaultParseOptions, path: "test-input.cs", cancellationToken: ct)),
             (additionalReferences ?? Enumerable.Empty<MetadataReference>()).Append(MetadataReference.CreateFromFile(typeof(NpgsqlDataSource).Assembly.Location)))
             .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new SqueelConnectionStringAnalyzer()), new AnalyzerOptions(Enumerable.Empty<AdditionalText>().ToImmutableArray(), squeelConnectionStringProvider), cancellationToken: ct);
 
@@ -27,10 +27,11 @@ public static class SqueelTestContext
             new EntityGenerator(),
             new ExtensionMethodGenerator(),
             new SqueelInterpolatedStringHandlerGenerator(),
-            new QueryGenerator(),
+            //new QueryGenerator(),
         };
 
         var driver = CSharpGeneratorDriver.Create(generators)
+            .WithUpdatedParseOptions(NetCoreCompilation.DefaultParseOptions)
             .WithUpdatedAnalyzerConfigOptions(squeelConnectionStringProvider)
             .RunGeneratorsAndUpdateCompilation(compilation.Compilation, out var newCompilation, out _, ct);
 
@@ -62,7 +63,7 @@ public static class SqueelTestContext
             output.WriteLine("");
         }
 
-        foreach (var file in result.GeneratedFiles.Where(f => f.FilePath.StartsWith("Squeel\\Squeel.EntityGenerator") || f.FilePath.StartsWith("Squeel\\Squeel.QueryGenerator")))
+        foreach (var file in result.GeneratedFiles.Where(f => f.FilePath.StartsWith("Squeel\\Squeel.Generators.EntityGenerator")))
         {
             output.WriteLine($"""
                 # {file.FilePath}

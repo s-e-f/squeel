@@ -34,6 +34,9 @@ public sealed class EntityGenerator : IIncrementalGenerator
                     Sql = sql,
                     Parameters = p,
                     GetLocation = () => interpolatedQuery.SyntaxTree.GetLocation(interpolatedQuery.Span),
+                    InterceptorPath = info.Left.Invocation.Expression.SyntaxTree.FilePath,
+                    InterceptorLine = info.Left.Invocation.Expression.GetLocation().GetLineSpan().Span.Start.Line,
+                    InterceptorColumn = info.Left.Invocation.Expression.GetLocation().GetLineSpan().Span.Start.Character,
                 };
             })
             .WithComparer(new EntityDescriptorComparer())
@@ -63,7 +66,9 @@ public sealed class EntityGenerator : IIncrementalGenerator
         public required string Sql { get; init; }
         public required ImmutableArray<SqlParameterDescriptor> Parameters { get; init; }
         public required string? ConnectionString { get; init; }
-
+        public required string InterceptorPath { get; init; }
+        public required int InterceptorLine { get; init; }
+        public required int InterceptorColumn { get; init; }
         internal required Func<Location> GetLocation { get; init; }
     }
 
@@ -88,24 +93,59 @@ public sealed class EntityGenerator : IIncrementalGenerator
             context.AddSource($"{entity.Name}.g.cs", $$"""
                 {{GeneratedFileOptions.Header}}
 
-                namespace {{GeneratedFileOptions.Namespace}};
-
-                {{GeneratedFileOptions.Attribute}}
-                internal sealed record {{entity.Name}}
-                {
-                {{string.Join("\n", columns.Select(c => $"    public required global::{c.DataType!.FullName} {c.ColumnName.Pascalize()} {{ get; init; }}"))}}
-                }
-
-                internal static partial class SqueelDbConnectionExtensions
+                namespace System.Runtime.CompilerServices
                 {
                     {{GeneratedFileOptions.Attribute}}
-                    private static readonly global::System.Func<global::Npgsql.NpgsqlDataReader, global::System.Threading.Tasks.Task<object>> _parser{{entity.Name}} = async reader =>
+                    [global::System.AttributeUsage(global::System.AttributeTargets.Method, AllowMultiple = true)]
+                    file sealed class InterceptsLocationAttribute(string filePath, int line, int character) : global::System.Attribute{}
+                }
+
+                namespace {{GeneratedFileOptions.Namespace}}
+                {
+                    {{GeneratedFileOptions.Attribute}}
+                    internal sealed record {{entity.Name}}
                     {
-                        return new global::{{GeneratedFileOptions.Namespace}}.{{entity.Name}}
+                    {{string.Join("\n", columns.Select(c => $"    public required global::{c.DataType!.FullName} {c.ColumnName.Pascalize()} {{ get; init; }}"))}}
+                    }
+
+                    {{GeneratedFileOptions.Attribute}}
+                    internal static class {{entity.Name}}QueryImplementation
+                    {
+                        {{GeneratedFileOptions.Attribute}}
+                        [global::System.Runtime.CompilerServices.InterceptsLocation("{{entity.InterceptorPath}}", {{entity.InterceptorLine}}, {{entity.InterceptorColumn}})]
+                        public static global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>> QueryAsync__{{entity.Name}}
+                            (this global::Npgsql.NpgsqlConnection connection, ref global::Squeel.SqueelInterpolatedStringHandler query, global::System.Threading.CancellationToken ct = default)
                         {
-                {{string.Join("\n", columns.Select(c => $"            {ParseFromReader(c)}"))}}            
-                        };
-                    };
+                            var sql = query.ToString('@');
+                
+                            using var command = connection.CreateCommand();
+                            command.CommandText = sql;
+                            return __Exec(command, query.Parameters, ct);
+                
+                            static async global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>> __Exec(global::Npgsql.NpgsqlCommand command, global::System.Collections.Generic.IEnumerable<global::{{GeneratedFileOptions.Namespace}}.ParameterDescriptor> parameters, global::System.Threading.CancellationToken ct)
+                            {
+                                foreach (var pd in parameters)
+                                {
+                                    var p = command.CreateParameter();
+                                    p.ParameterName = pd.Name;
+                                    p.Value = pd.Value;
+                                    command.Parameters.Add(p);
+                                }
+                
+                                using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+                
+                                var buffer = new global::System.Collections.Generic.List<{{entity.Name}}>();
+                                while (await reader.ReadAsync(ct).ConfigureAwait(false))
+                                {
+                                    buffer.Add(new {{entity.Name}}
+                                    {
+                {{string.Join("\n", columns.Select(c => $"                        {ParseFromReader(c)}"))}}
+                                    });
+                                }
+                                return buffer;
+                            }
+                        }
+                    }
                 }
                 """);
         }
@@ -123,12 +163,6 @@ public sealed class EntityGenerator : IIncrementalGenerator
                     /*
                         {{sql.Message}}
                     */
-                }
-
-                internal static partial class SqueelDbConnectionExtensions
-                {
-                    {{GeneratedFileOptions.Attribute}}
-                    private static readonly global::System.Func<global::Npgsql.NpgsqlDataReader, global::System.Threading.Tasks.Task<object>> _parser{{entity.Name}} = null!;
                 }
                 """);
 

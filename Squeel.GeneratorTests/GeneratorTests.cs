@@ -17,11 +17,11 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
     [Fact]
     public void SqueelShouldNotErrorWhenUnused()
     {
-        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, CSharpSyntaxTree.ParseText("""
+        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, """
             
             Console.WriteLine("Hello World");
             
-            """, path: "test-path/for-debugging/input.cs"));
+            """);
 
         Assert.Multiple(
             () => Assert.Empty(result.GeneratorDiagnostics),
@@ -31,7 +31,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
     [Fact]
     public void SqueelShouldWorkForSingleUseWithNormalInterpolation()
     {
-        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, CSharpSyntaxTree.ParseText($$"""
+        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$"""
             using Npgsql;
             using Squeel;
 
@@ -40,7 +40,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
             var email = "test@test.com";
             var users = connection.QueryAsync<User>($"SELECT email, date_of_birth FROM Users WHERE email = {email}");
 
-            """, path: "test-path/for-debugging/input.cs"));
+            """);
 
         Assert.Multiple(
             () => Assert.Empty(result.GeneratorDiagnostics),
@@ -50,7 +50,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
     [Fact]
     public void SqueelShouldWorkForSingleUseWithRawStringLiteralInterpolation()
     {
-        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, CSharpSyntaxTree.ParseText($$""""
+        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$""""
             using Npgsql;
             using Squeel;
 
@@ -63,7 +63,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
                 
                 """);
 
-            """", path: "test-path/for-debugging/input.cs"));
+            """");
 
         Assert.Multiple(
             () => Assert.Empty(result.GeneratorDiagnostics),
@@ -73,7 +73,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
     [Fact]
     public void FaultySqlShouldRaiseASingleGeneratorDiagnostic()
     {
-        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, CSharpSyntaxTree.ParseText($$""""
+        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$""""
             using Npgsql;
             using Squeel;
 
@@ -85,7 +85,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
 
                 """);
 
-            """"));
+            """");
 
         Assert.Multiple(
             () => Assert.Empty(result.Errors),

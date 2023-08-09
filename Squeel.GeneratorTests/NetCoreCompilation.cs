@@ -8,6 +8,10 @@ namespace Squeel.GeneratorTests;
 
 public static class NetCoreCompilation
 {
+    public static readonly CSharpParseOptions DefaultParseOptions = new(
+        LanguageVersion.Preview
+        );
+
     // https://github.com/dotnet/core/issues/2082#issuecomment-442713181
     private static readonly IEnumerable<MetadataReference> _netCoreRefs = DependencyContext.Default!.CompileLibraries
         .SelectMany(cl => cl.ResolveReferencePaths())
@@ -24,7 +28,8 @@ public static class NetCoreCompilation
             assemblyName: assemblyName,
             references: additionalReferences is null ? _netCoreRefs : _netCoreRefs.Concat(additionalReferences),
             syntaxTrees: syntaxTrees.Append(_implicitUsings),
-            options: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+            options: new CSharpCompilationOptions(OutputKind.ConsoleApplication))
+            ;
     }
 
     private static readonly SyntaxTree _implicitUsings = CSharpSyntaxTree.ParseText($"""
@@ -35,5 +40,5 @@ public static class NetCoreCompilation
         global using System.Linq;
         global using System.Threading;
         global using System.Threading.Tasks;
-        """, path: "implicit-usings.g.cs");
+        """, options: DefaultParseOptions, path: "implicit-usings.g.cs");
 }

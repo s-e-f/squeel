@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Squeel.Generators;
 
-[Generator(LanguageNames.CSharp)]
+//[Generator(LanguageNames.CSharp)]
 public sealed class QueryGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
