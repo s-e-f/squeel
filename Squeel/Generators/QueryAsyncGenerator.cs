@@ -99,7 +99,7 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
                 }
                 using var schemaReader = schemaCommand.ExecuteReader(CommandBehavior.SchemaOnly | CommandBehavior.SingleResult);
                 var columns = schemaReader.GetColumnSchema();
-
+                
                 context.AddSource($"{entity.Name}.g.cs", $$"""
                 {{GeneratedFileOptions.Header}}
 
@@ -127,12 +127,12 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
                     {
                         {{GeneratedFileOptions.Attribute}}
                         [global::System.Runtime.CompilerServices.InterceptsLocation({{entity.InterceptorPath}}, {{entity.InterceptorLine}}, {{entity.InterceptorColumn}})]
-                        public static global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>>
+                        public static global::System.Collections.Generic.IAsyncEnumerable<{{entity.Name}}>
                             QueryAsync__{{entity.Name}}
                         (
                             this global::Npgsql.NpgsqlConnection connection,
                             ref global::Squeel.SqueelInterpolatedStringHandler query,
-                            global::System.Threading.CancellationToken ct = default
+                            [global::System.Runtime.CompilerServices.EnumeratorCancellation] global::System.Threading.CancellationToken ct = default
                         )
                         {
                             var sql = query.ToString('@');
@@ -141,12 +141,12 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
                             command.CommandText = sql;
                             return __Exec(command, query.Parameters, ct);
                 
-                            static async global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>>
+                            static async global::System.Collections.Generic.IAsyncEnumerable<{{entity.Name}}>
                             __Exec
                             (
                                 global::Npgsql.NpgsqlCommand command,
                                 global::System.Collections.Generic.IEnumerable<global::{{GeneratedFileOptions.Namespace}}.ParameterDescriptor> parameters,
-                                global::System.Threading.CancellationToken ct
+                                [global::System.Runtime.CompilerServices] global::System.Threading.CancellationToken ct
                             )
                             {
                                 foreach (var pd in parameters)
@@ -159,15 +159,13 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
                 
                                 using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
                 
-                                var buffer = new global::System.Collections.Generic.List<{{entity.Name}}>();
                                 while (await reader.ReadAsync(ct).ConfigureAwait(false))
                                 {
-                                    buffer.Add(new {{entity.Name}}
+                                    yield return new {{entity.Name}}
                                     {
                 {{string.Join("\n", columns.Select(c => $"                        {ParseFromReader(c)}"))}}
-                                    });
+                                    };
                                 }
-                                return buffer;
                             }
                         }
                     }

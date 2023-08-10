@@ -20,12 +20,12 @@ public sealed class ExtensionMethodGenerator : IIncrementalGenerator
                 internal static class SqueelDbConnectionExtensions
                 {
                     {{GeneratedFileOptions.Attribute}}
-                    public static global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<T>>
+                    public static global::System.Collections.Generic.IAsyncEnumerable<T>
                         {{GeneratedFileOptions.MethodName}}<T>
                     (
                         this global::Npgsql.NpgsqlConnection connection,
                         ref global::{{GeneratedFileOptions.Namespace}}.SqueelInterpolatedStringHandler query,
-                        global::System.Threading.CancellationToken ct = default
+                        [EnumeratorCancellation] global::System.Threading.CancellationToken ct = default
                     )
                     {
                         throw new global::System.InvalidOperationException("This call failed to be intercepted by the Squeel source generator");

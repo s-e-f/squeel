@@ -35,13 +35,15 @@ public sealed class SqueelTests
 
         Assert.Equal(1, updated);
 
-        var users = await connection.QueryAsync<User>($"""
+        var users = connection.QueryAsync<User>($"""
             SELECT bio, email
             FROM users
             WHERE email = {newEmail}
             """);
 
-        Assert.Equal(newEmail, users.First().Email);
+        var user = await users.FirstAsync();
+
+        Assert.Equal(newEmail, user.Email);
 
         var deleted = await connection.ExecuteAsync($"""
             DELETE FROM users WHERE email = {newEmail}

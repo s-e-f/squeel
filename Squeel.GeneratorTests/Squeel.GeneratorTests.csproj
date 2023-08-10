@@ -8,6 +8,7 @@
 		<IsTestProject>true</IsTestProject>
 		<PreserveCompilationContext>true</PreserveCompilationContext>
 		<NoWarn>$(NoWarn);MSB3243</NoWarn>
+		<ResolveAssemblyReferencesSilent>true</ResolveAssemblyReferencesSilent>
 	</PropertyGroup>
 
 	<ItemGroup>
