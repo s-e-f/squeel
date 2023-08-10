@@ -132,7 +132,7 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
                         (
                             this global::Npgsql.NpgsqlConnection connection,
                             ref global::Squeel.SqueelInterpolatedStringHandler query,
-                            [global::System.Runtime.CompilerServices.EnumeratorCancellation] global::System.Threading.CancellationToken ct = default
+                            global::System.Threading.CancellationToken ct = default
                         )
                         {
                             var sql = query.ToString('@');
@@ -146,7 +146,7 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
                             (
                                 global::Npgsql.NpgsqlCommand command,
                                 global::System.Collections.Generic.IEnumerable<global::{{GeneratedFileOptions.Namespace}}.ParameterDescriptor> parameters,
-                                [global::System.Runtime.CompilerServices] global::System.Threading.CancellationToken ct
+                                [global::System.Runtime.CompilerServices.EnumeratorCancellation] global::System.Threading.CancellationToken ct
                             )
                             {
                                 foreach (var pd in parameters)

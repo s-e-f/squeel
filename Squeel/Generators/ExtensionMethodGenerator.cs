@@ -25,7 +25,7 @@ public sealed class ExtensionMethodGenerator : IIncrementalGenerator
                     (
                         this global::Npgsql.NpgsqlConnection connection,
                         ref global::{{GeneratedFileOptions.Namespace}}.SqueelInterpolatedStringHandler query,
-                        [EnumeratorCancellation] global::System.Threading.CancellationToken ct = default
+                        global::System.Threading.CancellationToken ct = default
                     )
                     {
                         throw new global::System.InvalidOperationException("This call failed to be intercepted by the Squeel source generator");

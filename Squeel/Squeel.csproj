@@ -52,6 +52,8 @@
 
 	<Target Name="GetDependencyTargetPaths">
 		<ItemGroup>
+			<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="dotnet/analyzers/cs" Visible="false" />
+			
 			<TargetPathWithTargetPlatformMoniker Include="$(PkgHumanizer_Core)\lib\netstandard2.0\Humanizer.dll" IncludeRuntimeDependency="false" />
 			<None Include="$(PkgHumanizer_Core)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="dotnet/analyzers/cs" Visible="false" />
 			
