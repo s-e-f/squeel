@@ -103,6 +103,8 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
                 context.AddSource($"{entity.Name}.g.cs", $$"""
                 {{GeneratedFileOptions.Header}}
 
+                #nullable enable
+
                 namespace System.Runtime.CompilerServices
                 {
                 #pragma warning disable CS9113
