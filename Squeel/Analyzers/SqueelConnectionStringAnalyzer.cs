@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Squeel.Diagnostics;
 using System.Collections.Immutable;
 
 namespace Squeel.Analyzers;
@@ -7,7 +8,7 @@ namespace Squeel.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class SqueelConnectionStringAnalyzer : DiagnosticAnalyzer
 {
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Diagnostics.MissingSqueelConnectionStringDescriptor);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(Descriptors.MissingSqueelConnectionString);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -18,7 +19,7 @@ public sealed class SqueelConnectionStringAnalyzer : DiagnosticAnalyzer
         {
             if (!compilationContext.Options.AnalyzerConfigOptionsProvider.GlobalOptions.TryGetValue("build_property.SqueelConnectionString", out var connectionString) || string.IsNullOrWhiteSpace(connectionString))
             {
-                var diagnostic = Diagnostic.Create(Diagnostics.MissingSqueelConnectionStringDescriptor, Location.None);
+                var diagnostic = Errors.MissingSqueelConnectionString();
                 compilationContext.ReportDiagnostic(diagnostic);
             }
         });

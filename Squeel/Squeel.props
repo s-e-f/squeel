@@ -1,4 +1,7 @@
 <Project>
+	<PropertyGroup>
+		<Features>InterceptorsPreview</Features>
+	</PropertyGroup>
 	<ItemGroup>
 		<CompilerVisibleProperty Include="SqueelConnectionString" />
 	</ItemGroup>

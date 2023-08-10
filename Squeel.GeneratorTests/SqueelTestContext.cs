@@ -24,10 +24,10 @@ public static class SqueelTestContext
 
         var generators = new IIncrementalGenerator[]
         {
-            new EntityGenerator(),
+            new QueryAsyncGenerator(),
+            new ExecuteAsyncGenerator(),
             new ExtensionMethodGenerator(),
             new SqueelInterpolatedStringHandlerGenerator(),
-            //new QueryGenerator(),
         };
 
         var driver = CSharpGeneratorDriver.Create(generators)
@@ -63,7 +63,7 @@ public static class SqueelTestContext
             output.WriteLine("");
         }
 
-        foreach (var file in result.GeneratedFiles.Where(f => f.FilePath.StartsWith("Squeel\\Squeel.Generators.EntityGenerator")))
+        foreach (var file in result.GeneratedFiles.Where(f => f.FilePath.StartsWith($"Squeel\\Squeel.Generators.{nameof(QueryAsyncGenerator)}")))
         {
             output.WriteLine($"""
                 # {file.FilePath}
@@ -75,7 +75,7 @@ public static class SqueelTestContext
             var gutterSize = lineCount.ToString().Length;
             foreach (var line in text.Lines)
             {
-                var gutter = line.LineNumber.ToString().PadLeft(gutterSize);
+                var gutter = (line.LineNumber + 1).ToString().PadLeft(gutterSize);
                 output.WriteLine($"    {gutter}  {line}");
             }
 

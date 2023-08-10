@@ -24,7 +24,8 @@ public static class SyntaxProviderExtensions
         });
     }
 
-    private static bool Filter(SyntaxNode node, CancellationToken ct) => node is InvocationExpressionSyntax;
+    private static bool Filter(SyntaxNode node, CancellationToken ct)
+        => node is InvocationExpressionSyntax;
 
     private static SqueelCallSite Transform(GeneratorSyntaxContext context, CancellationToken ct)
     {
@@ -37,24 +38,33 @@ public static class SyntaxProviderExtensions
         };
     }
 
+    private static readonly SymbolDisplayFormat _checkFormat = new(
+        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+        genericsOptions: SymbolDisplayGenericsOptions.None,
+        memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
+        extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
+        parameterOptions: SymbolDisplayParameterOptions.IncludeType
+        );
+
     public static IncrementalValuesProvider<SqueelCallSite> ForCallsToSqueelQueryMethod(this SyntaxValueProvider provider)
     {
         return provider.CreateSyntaxProvider(Filter, Transform)
             .Where(info =>
             {
                 var invocationSymbol = info.SemanticModel.GetSymbolInfo(info.Invocation);
-
-                var format = new SymbolDisplayFormat(
-                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-                    genericsOptions: SymbolDisplayGenericsOptions.None,
-                    memberOptions: SymbolDisplayMemberOptions.IncludeContainingType,
-                    extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
-                    parameterOptions: SymbolDisplayParameterOptions.IncludeType
-                    );
-
-                var check = invocationSymbol.Symbol?.ToDisplayString(format);
-
+                var check = invocationSymbol.Symbol?.ToDisplayString(_checkFormat);
                 return check is "Squeel.SqueelDbConnectionExtensions.QueryAsync";
+            });
+    }
+
+    public static IncrementalValuesProvider<SqueelCallSite> ForCallsToSqueelExecuteMethod(this SyntaxValueProvider provider)
+    {
+        return provider.CreateSyntaxProvider(Filter, Transform)
+            .Where(info =>
+            {
+                var invocationSymbol = info.SemanticModel.GetSymbolInfo(info.Invocation);
+                var check = invocationSymbol.Symbol?.ToDisplayString(_checkFormat);
+                return check is "Squeel.SqueelDbConnectionExtensions.ExecuteAsync";
             });
     }
 }

@@ -4,39 +4,41 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Npgsql;
 using Npgsql.Schema;
+using Squeel.Diagnostics;
 using System.Collections.Immutable;
 using System.Data;
 
 namespace Squeel.Generators;
 
 [Generator(LanguageNames.CSharp)]
-public sealed class EntityGenerator : IIncrementalGenerator
+public sealed class QueryAsyncGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var entityProvider = context.SyntaxProvider
             .ForCallsToSqueelQueryMethod()
             .Combine(context.AnalyzerConfigOptionsProvider.ForSqueelConnectionString())
+            .Combine(context.CompilationProvider)
             .Select(static (info, ct) =>
             {
-                var argument = info.Left.Invocation.ArgumentList.Arguments[0];
+                var argument = info.Left.Left.Invocation.ArgumentList.Arguments[0];
                 var interpolatedQuery = (InterpolatedStringExpressionSyntax)argument.Expression;
                 var sql = interpolatedQuery.ToParameterizedString(out var parameters);
-                var member = (MemberAccessExpressionSyntax)info.Left.Invocation.Expression;
+                var member = (MemberAccessExpressionSyntax)info.Left.Left.Invocation.Expression;
                 var name = (GenericNameSyntax)member.Name;
                 var type = (IdentifierNameSyntax)name.TypeArgumentList.Arguments[0];
                 var entity = type.Identifier.ValueText;
-                var p = parameters.Select(p => new SqlParameterDescriptor(p.Key, info.Left.SemanticModel.GetTypeInfo(p.Value).ToExampleValue())).ToImmutableArray();
+                var p = parameters.Select(p => new SqlParameterDescriptor(p.Key, info.Left.Left.SemanticModel.GetTypeInfo(p.Value).ToExampleValue())).ToImmutableArray();
                 return new EntityDescriptor
                 {
-                    ConnectionString = info.Right,
+                    ConnectionString = info.Left.Right,
                     Name = entity,
                     Sql = sql,
                     Parameters = p,
                     GetLocation = () => interpolatedQuery.SyntaxTree.GetLocation(interpolatedQuery.Span),
-                    InterceptorPath = info.Left.Invocation.Expression.SyntaxTree.FilePath,
-                    InterceptorLine = info.Left.Invocation.Expression.GetLocation().GetLineSpan().Span.Start.Line,
-                    InterceptorColumn = info.Left.Invocation.Expression.GetLocation().GetLineSpan().Span.Start.Character,
+                    InterceptorPath = $"@\"{info.Right.Options.SourceReferenceResolver?.NormalizePath(member.SyntaxTree.FilePath, baseFilePath: null) ?? member.SyntaxTree.FilePath}\"",
+                    InterceptorLine = member.Name.GetLocation().GetLineSpan().Span.Start.Line + 1,
+                    InterceptorColumn = member.Name.GetLocation().GetLineSpan().Span.Start.Character + 1,
                 };
             })
             .WithComparer(new EntityDescriptorComparer())
@@ -50,14 +52,22 @@ public sealed class EntityGenerator : IIncrementalGenerator
     private sealed class EntityDescriptorComparer : IEqualityComparer<EntityDescriptor>
     {
         public bool Equals(EntityDescriptor x, EntityDescriptor y)
-        {
-            return x.Name == y.Name && x.Sql == y.Sql && x.Parameters.SequenceEqual(y.Parameters) && x.ConnectionString == y.ConnectionString;
-        }
+            => x.Name == y.Name
+            && x.Sql == y.Sql
+            && x.Parameters.SequenceEqual(y.Parameters)
+            && x.ConnectionString == y.ConnectionString
+            && x.InterceptorPath == y.InterceptorPath
+            && x.InterceptorLine == y.InterceptorLine
+            && x.InterceptorColumn == y.InterceptorColumn;
 
-        public int GetHashCode(EntityDescriptor obj)
-        {
-            return HashCode.Combine(obj.Name, obj.Sql, obj.Parameters, obj.ConnectionString);
-        }
+        public int GetHashCode(EntityDescriptor obj) => HashCode.Combine(
+            obj.Name,
+            obj.Sql,
+            obj.Parameters,
+            obj.ConnectionString,
+            obj.InterceptorPath,
+            obj.InterceptorLine,
+            obj.InterceptorColumn);
     }
 
     private readonly record struct EntityDescriptor
@@ -72,32 +82,34 @@ public sealed class EntityGenerator : IIncrementalGenerator
         internal required Func<Location> GetLocation { get; init; }
     }
 
-    private static readonly DiagnosticDescriptor _invalidSqlDescriptor
-        = new("SQUEEL002", "Squeel: Invalid SQL query", "{0}: {1}", "Squeel", DiagnosticSeverity.Error, true);
-
     private static void Generate(SourceProductionContext context, EntityDescriptor entity)
     {
         try
         {
             using var connection = new NpgsqlConnection(entity.ConnectionString);
             connection.Open();
-            using var schemaCommand = connection.CreateCommand();
-            schemaCommand.CommandText = entity.Sql;
-            foreach (var p in entity.Parameters)
+            using var transaction = connection.BeginTransaction();
+            try
             {
-                schemaCommand.Parameters.Add(new NpgsqlParameter(p.Name, p.Value));
-            }
-            using var schemaReader = schemaCommand.ExecuteReader(CommandBehavior.SchemaOnly | CommandBehavior.SingleResult);
-            var columns = schemaReader.GetColumnSchema();
+                using var schemaCommand = connection.CreateCommand();
+                schemaCommand.CommandText = entity.Sql;
+                foreach (var p in entity.Parameters)
+                {
+                    schemaCommand.Parameters.Add(new NpgsqlParameter(p.Name, p.Value));
+                }
+                using var schemaReader = schemaCommand.ExecuteReader(CommandBehavior.SchemaOnly | CommandBehavior.SingleResult);
+                var columns = schemaReader.GetColumnSchema();
 
-            context.AddSource($"{entity.Name}.g.cs", $$"""
+                context.AddSource($"{entity.Name}.g.cs", $$"""
                 {{GeneratedFileOptions.Header}}
 
                 namespace System.Runtime.CompilerServices
                 {
+                #pragma warning disable CS9113
                     {{GeneratedFileOptions.Attribute}}
                     [global::System.AttributeUsage(global::System.AttributeTargets.Method, AllowMultiple = true)]
                     file sealed class InterceptsLocationAttribute(string filePath, int line, int character) : global::System.Attribute{}
+                #pragma warning restore CS9113
                 }
 
                 namespace {{GeneratedFileOptions.Namespace}}
@@ -105,16 +117,21 @@ public sealed class EntityGenerator : IIncrementalGenerator
                     {{GeneratedFileOptions.Attribute}}
                     internal sealed record {{entity.Name}}
                     {
-                    {{string.Join("\n", columns.Select(c => $"    public required global::{c.DataType!.FullName} {c.ColumnName.Pascalize()} {{ get; init; }}"))}}
+                {{string.Join("\n", columns.Select(c => $"        public required global::{c.DataType!.FullName}{Nullability(c)} {c.ColumnName.Pascalize()} {{ get; init; }}"))}}
                     }
 
                     {{GeneratedFileOptions.Attribute}}
                     internal static class {{entity.Name}}QueryImplementation
                     {
                         {{GeneratedFileOptions.Attribute}}
-                        [global::System.Runtime.CompilerServices.InterceptsLocation("{{entity.InterceptorPath}}", {{entity.InterceptorLine}}, {{entity.InterceptorColumn}})]
-                        public static global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>> QueryAsync__{{entity.Name}}
-                            (this global::Npgsql.NpgsqlConnection connection, ref global::Squeel.SqueelInterpolatedStringHandler query, global::System.Threading.CancellationToken ct = default)
+                        [global::System.Runtime.CompilerServices.InterceptsLocation({{entity.InterceptorPath}}, {{entity.InterceptorLine}}, {{entity.InterceptorColumn}})]
+                        public static global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>>
+                            QueryAsync__{{entity.Name}}
+                        (
+                            this global::Npgsql.NpgsqlConnection connection,
+                            ref global::Squeel.SqueelInterpolatedStringHandler query,
+                            global::System.Threading.CancellationToken ct = default
+                        )
                         {
                             var sql = query.ToString('@');
                 
@@ -122,7 +139,13 @@ public sealed class EntityGenerator : IIncrementalGenerator
                             command.CommandText = sql;
                             return __Exec(command, query.Parameters, ct);
                 
-                            static async global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>> __Exec(global::Npgsql.NpgsqlCommand command, global::System.Collections.Generic.IEnumerable<global::{{GeneratedFileOptions.Namespace}}.ParameterDescriptor> parameters, global::System.Threading.CancellationToken ct)
+                            static async global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>>
+                            __Exec
+                            (
+                                global::Npgsql.NpgsqlCommand command,
+                                global::System.Collections.Generic.IEnumerable<global::{{GeneratedFileOptions.Namespace}}.ParameterDescriptor> parameters,
+                                global::System.Threading.CancellationToken ct
+                            )
                             {
                                 foreach (var pd in parameters)
                                 {
@@ -148,6 +171,11 @@ public sealed class EntityGenerator : IIncrementalGenerator
                     }
                 }
                 """);
+            }
+            finally
+            {
+                transaction.Rollback();
+            }
         }
         catch (PostgresException sql)
         {
@@ -166,7 +194,7 @@ public sealed class EntityGenerator : IIncrementalGenerator
                 }
                 """);
 
-            context.ReportDiagnostic(Diagnostic.Create(_invalidSqlDescriptor, entity.GetLocation(), "postgresql", sql.MessageText));
+            context.ReportDiagnostic(Errors.QueryValidationFailed(entity.GetLocation(), "postgres", sql.MessageText));
         }
     }
 
@@ -176,6 +204,14 @@ public sealed class EntityGenerator : IIncrementalGenerator
         var propertyName = column.ColumnName.Pascalize();
         var propertyType = column.DataType!.FullName;
 
-        return $"{propertyName} = await reader.GetFieldValueAsync<global::{propertyType}>({ordinality}).ConfigureAwait(false),";
+        return $"{propertyName} = await reader.IsDBNullAsync({ordinality}, ct) ? null : await reader.GetFieldValueAsync<global::{propertyType}{Nullability(column)}>({ordinality}, ct).ConfigureAwait(false),";
+    }
+
+    private static string Nullability(NpgsqlDbColumn c)
+    {
+        if (c.AllowDBNull is true or null)
+            return "?";
+        else
+            return string.Empty;
     }
 }

@@ -29,7 +29,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
     }
 
     [Fact]
-    public void SqueelShouldWorkForSingleUseWithNormalInterpolation()
+    public void SqueelShouldWorkForSingleQueryWithNormalInterpolation()
     {
         var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$"""
             using Npgsql;
@@ -39,6 +39,65 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
 
             var email = "test@test.com";
             var users = connection.QueryAsync<User>($"SELECT email, date_of_birth FROM Users WHERE email = {email}");
+
+            """);
+
+        Assert.Multiple(
+            () => Assert.Empty(result.GeneratorDiagnostics),
+            () => Assert.Empty(result.Errors));
+    }
+
+    [Fact]
+    public void SqueelShouldWorkForSingleInsertWithNormalInterpolation()
+    {
+        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$"""
+            using Npgsql;
+            using Squeel;
+
+            using var connection = new NpgsqlConnection("{{_postgres.ConnectionString}}");
+
+            var email = "test@test.com";
+            var dateOfBirth = DateTimeOffset.Now;
+            var affected = connection.ExecuteAsync($"INSERT INTO Users (email, date_of_birth) VALUES ({email}, {dateOfBirth})");
+
+            """);
+
+        Assert.Multiple(
+            () => Assert.Empty(result.GeneratorDiagnostics),
+            () => Assert.Empty(result.Errors));
+    }
+
+    [Fact]
+    public void SqueelShouldWorkForSingleUpdateWithNormalInterpolation()
+    {
+        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$"""
+            using Npgsql;
+            using Squeel;
+
+            using var connection = new NpgsqlConnection("{{_postgres.ConnectionString}}");
+
+            var email = "test@test.com";
+            var dateOfBirth = DateTimeOffset.Now;
+            var affected = connection.ExecuteAsync($"UPDATE users SET email = {email}, date_of_birth = {dateOfBirth}");
+
+            """);
+
+        Assert.Multiple(
+            () => Assert.Empty(result.GeneratorDiagnostics),
+            () => Assert.Empty(result.Errors));
+    }
+
+    [Fact]
+    public void SqueelShouldWorkForSingleDeleteWithNormalInterpolation()
+    {
+        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$"""
+            using Npgsql;
+            using Squeel;
+
+            using var connection = new NpgsqlConnection("{{_postgres.ConnectionString}}");
+
+            var email = "test@test.com";
+            var affected = connection.ExecuteAsync($"DELETE FROM users WHERE email = {email}");
 
             """);
 

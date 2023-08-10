@@ -1,8 +1,5 @@
 ﻿<Project>
   <ItemGroup>
-    <PackageReference Include="Nerdbank.GitVersioning">
-      <PrivateAssets>all</PrivateAssets>
-      <Version>3.6.133</Version>
-    </PackageReference>
+    <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" Version="3.6.133" />
   </ItemGroup>
 </Project>
