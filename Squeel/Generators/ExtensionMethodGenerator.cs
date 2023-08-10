@@ -20,7 +20,7 @@ public sealed class ExtensionMethodGenerator : IIncrementalGenerator
                 internal static class SqueelDbConnectionExtensions
                 {
                     {{GeneratedFileOptions.Attribute}}
-                    public static global::System.Collections.Generic.IAsyncEnumerable<T>
+                    public static global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<T>>
                         {{GeneratedFileOptions.MethodName}}<T>
                     (
                         this global::Npgsql.NpgsqlConnection connection,

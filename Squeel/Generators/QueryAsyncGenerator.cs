@@ -127,7 +127,7 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
                     {
                         {{GeneratedFileOptions.Attribute}}
                         [global::System.Runtime.CompilerServices.InterceptsLocation({{entity.InterceptorPath}}, {{entity.InterceptorLine}}, {{entity.InterceptorColumn}})]
-                        public static global::System.Collections.Generic.IAsyncEnumerable<{{entity.Name}}>
+                        public static global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>>
                             QueryAsync__{{entity.Name}}
                         (
                             this global::Npgsql.NpgsqlConnection connection,
@@ -141,12 +141,12 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
                             command.CommandText = sql;
                             return __Exec(command, query.Parameters, ct);
                 
-                            static async global::System.Collections.Generic.IAsyncEnumerable<{{entity.Name}}>
+                            static async global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>>
                             __Exec
                             (
                                 global::Npgsql.NpgsqlCommand command,
                                 global::System.Collections.Generic.IEnumerable<global::{{GeneratedFileOptions.Namespace}}.ParameterDescriptor> parameters,
-                                [global::System.Runtime.CompilerServices.EnumeratorCancellation] global::System.Threading.CancellationToken ct
+                                global::System.Threading.CancellationToken ct
                             )
                             {
                                 foreach (var pd in parameters)
@@ -159,13 +159,15 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
                 
                                 using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
                 
+                                var list = new global::System.Collections.Generic.List<{{entity.Name}}>();
                                 while (await reader.ReadAsync(ct).ConfigureAwait(false))
                                 {
-                                    yield return new {{entity.Name}}
+                                    list.Add(new {{entity.Name}}
                                     {
                 {{string.Join("\n", columns.Select(c => $"                        {ParseFromReader(c)}"))}}
-                                    };
+                                    });
                                 }
+                                return list;
                             }
                         }
                     }
