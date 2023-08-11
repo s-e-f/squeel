@@ -88,7 +88,7 @@ public sealed class ExecuteAsyncGenerator : IIncrementalGenerator
                 {
                     schemaCommand.Parameters.Add(new NpgsqlParameter(p.Name, p.Value));
                 }
-                using var schemaReader = schemaCommand.ExecuteReader(CommandBehavior.SchemaOnly | CommandBehavior.SingleResult);
+                using var schemaReader = schemaCommand.ExecuteReader(CommandBehavior.SingleResult);
                 var columns = schemaReader.GetColumnSchema();
             }
             finally

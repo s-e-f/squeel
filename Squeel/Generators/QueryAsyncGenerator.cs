@@ -119,7 +119,7 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
                     {{GeneratedFileOptions.Attribute}}
                     internal sealed record {{entity.Name}}
                     {
-                {{string.Join("\n", columns.Select(c => $"        public required global::{c.DataType!.FullName}{Nullability(c)} {c.ColumnName.Pascalize()} {{ get; init; }}"))}}
+                {{string.Join("\n", columns.Select(c => $"        public{Requiredness(c)} global::{c.DataType!.FullName}{Nullability(c)} {c.ColumnName.Pascalize()} {{ get; init; }}"))}}
                     }
 
                     {{GeneratedFileOptions.Attribute}}
@@ -215,5 +215,12 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
             return "?";
         else
             return string.Empty;
+    }
+
+    private static string Requiredness(NpgsqlDbColumn c)
+    {
+        if (c.AllowDBNull is false)
+            return " required";
+        return "";
     }
 }
