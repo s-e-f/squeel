@@ -37,7 +37,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
             using var connection = new NpgsqlConnection("{{_postgres.ConnectionString}}");
 
             var email = "test@test.com";
-            var users = connection.QueryAsync<User>($"SELECT email, date_of_birth FROM Users WHERE email = {email}");
+            var users = connection.QueryAsync<User>($"SELECT email, date_of_birth, created FROM Users WHERE email = {email}");
 
             """);
 
@@ -56,7 +56,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
             using var connection = new NpgsqlConnection("{{_postgres.ConnectionString}}");
 
             var email = "test@test.com";
-            var dateOfBirth = DateTimeOffset.Now;
+            var dateOfBirth = DateTime.UtcNow;
             var affected = connection.ExecuteAsync($"INSERT INTO Users (email, date_of_birth) VALUES ({email}, {dateOfBirth})");
 
             """);
@@ -76,7 +76,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
             using var connection = new NpgsqlConnection("{{_postgres.ConnectionString}}");
 
             var email = "test@test.com";
-            var dateOfBirth = DateTimeOffset.Now;
+            var dateOfBirth = DateTime.UtcNow;
             var affected = connection.ExecuteAsync($"UPDATE users SET email = {email}, date_of_birth = {dateOfBirth}");
 
             """);

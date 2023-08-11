@@ -19,7 +19,7 @@ public sealed class SqueelTests
         using var connection = CreateConnection();
 
         var email = $"{Guid.NewGuid()}@test.com";
-        var dob = DateTimeOffset.UtcNow;
+        var dob = DateTime.UtcNow;
 
         var inserted = await connection.ExecuteAsync($"""
             INSERT INTO users (email, date_of_birth) VALUES ({email}, {dob})

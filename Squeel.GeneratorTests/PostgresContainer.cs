@@ -22,7 +22,14 @@ public sealed class PostgresContainer : IAsyncLifetime
         using var connection = new NpgsqlConnection(ConnectionString);
         await connection.OpenAsync();
         using var command = connection.CreateCommand();
-        command.CommandText = "CREATE TABLE Users(email varchar(312), date_of_birth date)";
+        command.CommandText = """
+            CREATE TABLE users(
+                id uuid primary key default gen_random_uuid(),
+                email varchar(312) not null,
+                date_of_birth date not null,
+                created timestamp with time zone not null default now()
+            )
+            """;
         await command.ExecuteNonQueryAsync();
     }
 

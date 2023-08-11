@@ -6,6 +6,7 @@ using Npgsql;
 using Npgsql.Schema;
 using Squeel.Diagnostics;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Data;
 
 namespace Squeel.Generators;
@@ -82,6 +83,21 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
         internal required Func<Location> GetLocation { get; init; }
     }
 
+    private static ReadOnlyCollection<NpgsqlDbColumn> GetColumnSchema(
+        NpgsqlConnection connection,
+        string sql,
+        in ImmutableArray<SqlParameterDescriptor> parameters)
+    {
+        using var schemaCommand = connection.CreateCommand();
+        schemaCommand.CommandText = sql;
+        foreach (var p in parameters)
+        {
+            schemaCommand.Parameters.Add(new NpgsqlParameter(p.Name, p.Value));
+        }
+        using var schemaReader = schemaCommand.ExecuteReader(CommandBehavior.SchemaOnly | CommandBehavior.SingleResult | CommandBehavior.KeyInfo);
+        return schemaReader.GetColumnSchema();
+    }
+
     private static void Generate(SourceProductionContext context, EntityDescriptor entity)
     {
         try
@@ -91,88 +107,82 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
             using var transaction = connection.BeginTransaction();
             try
             {
-                using var schemaCommand = connection.CreateCommand();
-                schemaCommand.CommandText = entity.Sql;
-                foreach (var p in entity.Parameters)
-                {
-                    schemaCommand.Parameters.Add(new NpgsqlParameter(p.Name, p.Value));
-                }
-                using var schemaReader = schemaCommand.ExecuteReader(CommandBehavior.SchemaOnly | CommandBehavior.SingleResult);
-                var columns = schemaReader.GetColumnSchema();
-                
+                var columns = GetColumnSchema(connection, entity.Sql, entity.Parameters);
+
                 context.AddSource($"{entity.Name}.g.cs", $$"""
-                {{GeneratedFileOptions.Header}}
+                    {{GeneratedFileOptions.Header}}
 
-                #nullable enable
+                    #nullable enable
 
-                namespace System.Runtime.CompilerServices
-                {
-                #pragma warning disable CS9113
-                    {{GeneratedFileOptions.Attribute}}
-                    [global::System.AttributeUsage(global::System.AttributeTargets.Method, AllowMultiple = true)]
-                    file sealed class InterceptsLocationAttribute(string filePath, int line, int character) : global::System.Attribute{}
-                #pragma warning restore CS9113
-                }
-
-                namespace {{GeneratedFileOptions.Namespace}}
-                {
-                    {{GeneratedFileOptions.Attribute}}
-                    internal sealed record {{entity.Name}}
+                    namespace System.Runtime.CompilerServices
                     {
-                {{string.Join("\n", columns.Select(c => $"        public{Requiredness(c)} global::{c.DataType!.FullName}{Nullability(c)} {c.ColumnName.Pascalize()} {{ get; init; }}"))}}
+                    #pragma warning disable CS9113
+                        {{GeneratedFileOptions.Attribute}}
+                        [global::System.AttributeUsage(global::System.AttributeTargets.Method, AllowMultiple = true)]
+                        file sealed class InterceptsLocationAttribute(string filePath, int line, int character) : global::System.Attribute{}
+                    #pragma warning restore CS9113
                     }
 
-                    {{GeneratedFileOptions.Attribute}}
-                    internal static class {{entity.Name}}QueryImplementation
+                    namespace {{GeneratedFileOptions.Namespace}}
                     {
                         {{GeneratedFileOptions.Attribute}}
-                        [global::System.Runtime.CompilerServices.InterceptsLocation({{entity.InterceptorPath}}, {{entity.InterceptorLine}}, {{entity.InterceptorColumn}})]
-                        public static global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>>
-                            QueryAsync__{{entity.Name}}
-                        (
-                            this global::Npgsql.NpgsqlConnection connection,
-                            ref global::Squeel.SqueelInterpolatedStringHandler query,
-                            global::System.Threading.CancellationToken ct = default
-                        )
+                        internal sealed record {{entity.Name}}
                         {
-                            var sql = query.ToString('@');
-                
-                            using var command = connection.CreateCommand();
-                            command.CommandText = sql;
-                            return __Exec(command, query.Parameters, ct);
-                
-                            static async global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>>
-                            __Exec
+                    {{string.Join("\n", columns.Select(c => $"        public{Requiredness(c)} global::{c.DataType!.FullName}{Nullability(c)} {c.ColumnName.Pascalize()} {{ get; init; }}"))}}
+                        }
+
+                        {{GeneratedFileOptions.Attribute}}
+                        internal static class {{entity.Name}}QueryImplementation
+                        {
+                            {{GeneratedFileOptions.Attribute}}
+                            [global::System.Runtime.CompilerServices.InterceptsLocation({{entity.InterceptorPath}}, {{entity.InterceptorLine}}, {{entity.InterceptorColumn}})]
+                            public static global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>>
+                                QueryAsync__{{entity.Name}}
                             (
-                                global::Npgsql.NpgsqlCommand command,
-                                global::System.Collections.Generic.IEnumerable<global::{{GeneratedFileOptions.Namespace}}.ParameterDescriptor> parameters,
-                                global::System.Threading.CancellationToken ct
+                                this global::Npgsql.NpgsqlConnection connection,
+                                ref global::Squeel.SqueelInterpolatedStringHandler query,
+                                global::System.Threading.CancellationToken ct = default
                             )
                             {
-                                foreach (var pd in parameters)
-                                {
-                                    var p = command.CreateParameter();
-                                    p.ParameterName = pd.Name;
-                                    p.Value = pd.Value;
-                                    command.Parameters.Add(p);
-                                }
+                                var sql = query.ToString('@');
                 
-                                using var reader = await command.ExecuteReaderAsync(ct).ConfigureAwait(false);
+                                using var command = connection.CreateCommand();
+                                command.CommandText = sql;
+                                return __Exec(command, query.Parameters, ct);
                 
-                                var list = new global::System.Collections.Generic.List<{{entity.Name}}>();
-                                while (await reader.ReadAsync(ct).ConfigureAwait(false))
+                                static async global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<{{entity.Name}}>>
+                                __Exec
+                                (
+                                    global::Npgsql.NpgsqlCommand command,
+                                    global::System.Collections.Generic.IEnumerable<global::{{GeneratedFileOptions.Namespace}}.ParameterDescriptor> parameters,
+                                    global::System.Threading.CancellationToken ct
+                                )
                                 {
-                                    list.Add(new {{entity.Name}}
+                                    foreach (var pd in parameters)
                                     {
-                {{string.Join("\n", columns.Select(c => $"                        {ParseFromReader(c)}"))}}
-                                    });
+                                        var p = command.CreateParameter();
+                                        p.ParameterName = pd.Name;
+                                        p.Value = pd.Value;
+                                        command.Parameters.Add(p);
+                                    }
+                
+                                    var flags = global::System.Data.CommandBehavior.SequentialAccess | global::System.Data.CommandBehavior.SingleResult;
+                                    using var reader = await command.ExecuteReaderAsync(flags, ct).ConfigureAwait(false);
+                
+                                    var list = new global::System.Collections.Generic.List<{{entity.Name}}>();
+                                    while (await reader.ReadAsync(ct).ConfigureAwait(false))
+                                    {
+                                        list.Add(new {{entity.Name}}
+                                        {
+                    {{string.Join("\n", columns.Select(c => $"                        {ParseFromReader(c)}"))}}
+                                        });
+                                    }
+                                    return list;
                                 }
-                                return list;
                             }
                         }
                     }
-                }
-                """);
+                    """);
             }
             finally
             {
@@ -206,6 +216,9 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
         var propertyName = column.ColumnName.Pascalize();
         var propertyType = column.DataType!.FullName;
 
+        if (column.AllowDBNull is false)
+            return $"{propertyName} = await reader.GetFieldValueAsync<global::{propertyType}>({ordinality}, ct).ConfigureAwait(false),";
+        
         return $"{propertyName} = await reader.IsDBNullAsync({ordinality}, ct) ? null : await reader.GetFieldValueAsync<global::{propertyType}{Nullability(column)}>({ordinality}, ct).ConfigureAwait(false),";
     }
 
@@ -219,8 +232,9 @@ public sealed class QueryAsyncGenerator : IIncrementalGenerator
 
     private static string Requiredness(NpgsqlDbColumn c)
     {
-        if (c.AllowDBNull is false)
-            return " required";
-        return "";
+        if (c.DefaultValue is not null)
+            return "";
+
+        return " required";
     }
 }
