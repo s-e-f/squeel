@@ -2,6 +2,7 @@
 
 namespace Squeel.GeneratorTests;
 
+[Trait("Category", "Postgres")]
 public sealed class SqueelTests
 (
 )
@@ -13,7 +14,7 @@ public sealed class SqueelTests
         return connection;
     }
 
-    [Fact]
+    [Fact(DisplayName = "Happy flow")]
     public async Task QueryingUsersOnEmptyDatabaseYieldsEmptyEnumerable()
     {
         using var connection = CreateConnection();

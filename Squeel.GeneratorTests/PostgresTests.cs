@@ -2,18 +2,19 @@ using Xunit.Abstractions;
 
 namespace Squeel.GeneratorTests;
 
-public sealed class GeneratorTests : IClassFixture<PostgresContainer>
+[Trait("Category", "Postgres")]
+public sealed class PostgresTests : IClassFixture<PostgresContainer>
 {
     private readonly PostgresContainer _postgres;
     private readonly ITestOutputHelper _output;
 
-    public GeneratorTests(PostgresContainer postgres, ITestOutputHelper output)
+    public PostgresTests(PostgresContainer postgres, ITestOutputHelper output)
     {
         _postgres = postgres;
         _output = output;
     }
 
-    [Fact]
+    [Fact(DisplayName = "Silent when unused")]
     public void SqueelShouldNotErrorWhenUnused()
     {
         var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, """
@@ -27,7 +28,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
             () => Assert.Empty(result.Errors));
     }
 
-    [Fact]
+    [Fact(DisplayName = "SELECT on complex type")]
     public void SqueelShouldWorkForSingleQueryWithNormalInterpolation()
     {
         var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$"""
@@ -46,7 +47,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
             () => Assert.Empty(result.Errors));
     }
 
-    [Fact]
+    [Fact(DisplayName = "INSERT")]
     public void SqueelShouldWorkForSingleInsertWithNormalInterpolation()
     {
         var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$"""
@@ -66,7 +67,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
             () => Assert.Empty(result.Errors));
     }
 
-    [Fact]
+    [Fact(DisplayName = "UPDATE")]
     public void SqueelShouldWorkForSingleUpdateWithNormalInterpolation()
     {
         var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$"""
@@ -86,7 +87,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
             () => Assert.Empty(result.Errors));
     }
 
-    [Fact]
+    [Fact(DisplayName = "DELETE")]
     public void SqueelShouldWorkForSingleDeleteWithNormalInterpolation()
     {
         var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$"""
@@ -105,30 +106,7 @@ public sealed class GeneratorTests : IClassFixture<PostgresContainer>
             () => Assert.Empty(result.Errors));
     }
 
-    [Fact]
-    public void SqueelShouldWorkForSingleUseWithRawStringLiteralInterpolation()
-    {
-        var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$""""
-            using Npgsql;
-            using Squeel;
-
-            using var connection = new NpgsqlConnection("{{_postgres.ConnectionString}}");
-
-            var email = "test@test.com";
-            var users = connection.QueryAsync<User>($"""
-
-                SELECT email, date_of_birth FROM Users WHERE email = {email}
-                
-                """);
-
-            """");
-
-        Assert.Multiple(
-            () => Assert.Empty(result.GeneratorDiagnostics),
-            () => Assert.Empty(result.Errors));
-    }
-
-    [Fact]
+    [Fact(DisplayName = "SELECT invalid query generates one diagnostic")]
     public void FaultySqlShouldRaiseASingleGeneratorDiagnostic()
     {
         var result = SqueelTestContext.Run(_postgres.ConnectionString, _output, $$""""

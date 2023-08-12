@@ -16,7 +16,7 @@ public sealed class SqueelInterpolatedStringHandlerGenerator : IIncrementalGener
 
                 #nullable enable
 
-                namespace {{GeneratedFileOptions.Namespace}};
+                namespace Squeel;
 
                 {{GeneratedFileOptions.Attribute}}
                 internal readonly record struct ParameterDescriptor

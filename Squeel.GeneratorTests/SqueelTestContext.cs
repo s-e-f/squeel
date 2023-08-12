@@ -24,9 +24,7 @@ public static class SqueelTestContext
 
         var generators = new IIncrementalGenerator[]
         {
-            new QueryAsyncGenerator(),
-            new ExecuteAsyncGenerator(),
-            new ExtensionMethodGenerator(),
+            new PostgresGenerator(),
             new SqueelInterpolatedStringHandlerGenerator(),
         };
 
@@ -63,7 +61,7 @@ public static class SqueelTestContext
             output.WriteLine("");
         }
 
-        foreach (var file in result.GeneratedFiles.Where(f => f.FilePath.StartsWith($"Squeel\\Squeel.Generators.{nameof(QueryAsyncGenerator)}")))
+        foreach (var file in result.GeneratedFiles.Where(f => f.FilePath.StartsWith($"Squeel\\Squeel.Generators.{nameof(PostgresGenerator)}")))
         {
             output.WriteLine($"""
                 # {file.FilePath}
