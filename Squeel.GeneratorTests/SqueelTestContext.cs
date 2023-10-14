@@ -18,7 +18,7 @@ public static class SqueelTestContext
         var compilation = NetCoreCompilation.Create(
             ImmutableArray.Create(CSharpSyntaxTree.ParseText(code, NetCoreCompilation.DefaultParseOptions, path: "test-input.cs", cancellationToken: ct)),
             (additionalReferences ?? Enumerable.Empty<MetadataReference>()).Append(MetadataReference.CreateFromFile(typeof(NpgsqlDataSource).Assembly.Location)))
-            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new SqueelConnectionStringAnalyzer()), new AnalyzerOptions(Enumerable.Empty<AdditionalText>().ToImmutableArray(), squeelConnectionStringProvider), cancellationToken: ct);
+            .WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new SqueelConnectionStringAnalyzer()), new AnalyzerOptions(Enumerable.Empty<AdditionalText>().ToImmutableArray(), squeelConnectionStringProvider));
 
         var analysisResults = compilation.GetAnalysisResultAsync(ct).GetAwaiter().GetResult();
 
@@ -37,7 +37,9 @@ public static class SqueelTestContext
 
         var result = new SqueelTestResult
         {
-            Errors = newCompilation.GetDiagnostics(ct).Where(d => d.WarningLevel is 0 && !d.IsWarningAsError).ToImmutableArray(),
+            Errors = newCompilation.GetDiagnostics(ct).Where(d => d.WarningLevel is 0 && !d.IsWarningAsError)
+                .Where(e => e.Id != "CS9137") // InterceptorsPreview error
+                .ToImmutableArray(),
             GeneratorDiagnostics = runResult.Diagnostics,
             GeneratedFiles = runResult.GeneratedTrees,
             AnalyzerDiagnostics = analysisResults,

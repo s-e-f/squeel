@@ -9,7 +9,7 @@ namespace Squeel.GeneratorTests;
 public static class NetCoreCompilation
 {
     public static readonly CSharpParseOptions DefaultParseOptions = new(
-        LanguageVersion.Preview
+        languageVersion: LanguageVersion.Preview
         );
 
     // https://github.com/dotnet/core/issues/2082#issuecomment-442713181

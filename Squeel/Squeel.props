@@ -1,6 +1,6 @@
 <Project>
 	<PropertyGroup>
-		<Features>InterceptorsPreview</Features>
+		<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Squeel</InterceptorsPreviewNamespaces>
 	</PropertyGroup>
 	<ItemGroup>
 		<CompilerVisibleProperty Include="SqueelConnectionString" />

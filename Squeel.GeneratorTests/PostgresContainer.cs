@@ -12,6 +12,7 @@ public sealed class PostgresContainer : IAsyncLifetime
     public PostgresContainer()
     {
         _container = new PostgreSqlBuilder()
+            .WithImage("postgres:15.3-bookworm")
             .WithPassword("Squeel123!")
             .Build();
     }
