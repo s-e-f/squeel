@@ -9,7 +9,7 @@ public sealed class SqueelTests
 {
     private static NpgsqlConnection CreateConnection()
     {
-        var connection = new NpgsqlConnection("Host=localhost+Port=5432+Password=P@ssw0rd+Database=squeel+User ID=postgres".Replace('+', ';'));
+        var connection = new NpgsqlConnection("Host=localhost+Port=5432+Password=squeel+User ID=postgres".Replace('+', ';'));
         connection.Open();
         return connection;
     }

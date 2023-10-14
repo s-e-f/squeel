@@ -82,12 +82,6 @@ public sealed class PostgresGenerator : IIncrementalGenerator
             })
             .Combine(context.AnalyzerConfigOptionsProvider.ForSqueelConnectionString())
             .Combine(context.CompilationProvider)
-            .Where(i =>
-            {
-                var compilation = i.Right;
-                var usedRefs = compilation.GetUsedAssemblyReferences();
-                return usedRefs.Any(r => Path.GetFileName(r.Display) is "Npgsql.dll");
-            })
             .Select(static (info, ct) =>
             {
                 var argument = info.Left.Left.Invocation.ArgumentList.Arguments[0];
@@ -127,12 +121,6 @@ public sealed class PostgresGenerator : IIncrementalGenerator
             })
             .Combine(context.AnalyzerConfigOptionsProvider.ForSqueelConnectionString())
             .Combine(context.CompilationProvider)
-            .Where(i =>
-            {
-                var compilation = i.Right;
-                var usedRefs = compilation.GetUsedAssemblyReferences();
-                return usedRefs.Any(r => Path.GetFileName(r.Display) is "Npgsql.dll");
-            })
             .Select(static (info, ct) =>
             {
                 var argument = info.Left.Left.Invocation.ArgumentList.Arguments[0];

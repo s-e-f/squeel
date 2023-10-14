@@ -28,7 +28,8 @@ public sealed class PostgresContainer : IAsyncLifetime
                 id uuid primary key default gen_random_uuid(),
                 email varchar(312) not null,
                 date_of_birth date not null,
-                created timestamp with time zone not null default now()
+                created timestamp with time zone not null default now(),
+                bio text null
             )
             """;
         await command.ExecuteNonQueryAsync();

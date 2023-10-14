@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
-		<SqueelConnectionString>Host=localhost+Port=5432+Password=P@ssw0rd+Database=squeel+User ID=postgres</SqueelConnectionString>
+		<SqueelConnectionString>Host=localhost+Port=5432+Password=squeel+User ID=postgres</SqueelConnectionString>
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<NoWarn>$(NoWarn);MSB3243</NoWarn>
 		<LangVersion>preview</LangVersion>
@@ -31,6 +31,10 @@
 		<ProjectReference Include="..\Squeel\Squeel.csproj" OutputItemType="Analyzer" PrivateAssets="all">
 		  <ReferenceOutputAssembly>False</ReferenceOutputAssembly>
 		</ProjectReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
 	</ItemGroup>
 
 	<Import Project="../Squeel/Squeel.props" />
